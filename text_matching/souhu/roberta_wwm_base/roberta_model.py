@@ -1,5 +1,8 @@
 # -*-coding=utf-8-*-
 '''
+@Created on 2021/4/8
+
+@Haihui Pan
 '''
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '2,1'
@@ -214,6 +217,10 @@ def predict(model_name, max_len):
         train_inputs = [np.concatenate([i[:val_start_index], i[val_end_index:]], axis=0) for i in X_train]
         train_outputs = np.concatenate([y_train[:val_start_index], y_train[val_end_index:]], axis=0)
 
+        logging.info("train_outs维度 {}".format(train_outputs.shape))
+
+
+
         K.clear_session()
         strategy = tf.distribute.MirroredStrategy(
             devices=["/device:GPU:2","/device:GPU:1"])
@@ -224,12 +231,13 @@ def predict(model_name, max_len):
             model.load_weights('model/{0:s}_{1:d}.h5'.format(model_name, int(i)))
 
             # 预测验证集
-            valid_pred = model.predict([i for i in valid_inputs], batch_size=512)
-            train_pred=  model.predict([i for i in train_inputs], batch_size=512)
+            valid_pred = model.predict([i for i in valid_inputs], batch_size=128)
+            train_pred=  model.predict([i for i in train_inputs], batch_size=128)
 
             valid_preds.append(valid_pred)
+            logging.info("valid_preds维度 {}".format(np.array(valid_preds).shape))
             train_preds.append(train_pred)
-
+            logging.info("train_preds维度 {}".format(np.array(train_preds).shape))
             score, t = search_f1(valid_outputs, valid_pred)
 
             logging.info("pair model K-{}, validation score ={}".format(i, score))
@@ -240,8 +248,8 @@ def predict(model_name, max_len):
 
             # 预测测试集
             test_preds.append(model.predict([i for i in test_input], batch_size=16))
-        # if i==1:
-        #     break
+            # if i==1:
+            #     break
         # if i==2:
         #     continue
     # np.save('test_preds.npy', test_preds)
@@ -252,17 +260,25 @@ def predict(model_name, max_len):
     sub_train=np.average(train_preds, axis=0)
     sub_valid = np.average(valid_preds, axis=0)
 
+    train_preds = np.squeeze(train_preds).T#squeeze是为了去除维度为1的列，train_preds是（5, 55663, 1）维度的，sub_train是(55663,)，通过变换，将train_preds转为(55663,5)
+    valid_preds = np.squeeze(valid_preds).T
 
-    #train_preds有7列 0-4列分别是k折的5个模型预测的概率，第5列是前五个概率的平均值，第6列是其真实label
-    train_preds.append(sub_train)
-    train_preds.append(train_outputs)
-    valid_preds.append(sub_valid)
-    valid_preds.append(valid_outputs)
+    # print("train_preds维度 {}".format(np.array(train_preds).shape))
+    train_preds = np.concatenate((train_preds, sub_train), axis=1)
+    valid_preds = np.concatenate((valid_preds, sub_valid), axis=1)#将(13915,5)和(13915,1)合并 ->(13915,6)
 
-    train_preds.extend(valid_preds)#真正完整的训练数据，之所以开始的时候分开做了训练和验证，是为了单独在验证集中找最好的阈值，给测试集确定label
-    Train=train_preds
+    train_outputs = np.expand_dims(train_outputs, axis=1)#train_outputs维度原先是(55663,) 通过升维，变为(55663,1)
+    valid_outputs = np.expand_dims(valid_outputs, axis=1)
+
+    train_preds = np.concatenate((train_preds, train_outputs), axis=1)
+    valid_preds = np.concatenate((valid_preds, valid_outputs), axis=1)
+
+    # 真正完整的训练数据，之所以开始的时候分开做了训练和验证，是为了单独在验证集中找最好的阈值，给测试集确定label
+
+    Train = np.concatenate((train_preds, valid_preds), axis=0).tolist()#axis=0表示在纵轴上合并，axis=1表示在横轴上合并
 
     Train_df=pd.DataFrame(Train,columns=['K0','K1','K2','K3','K4',"mean","label"])
+    logging.info(Train_df)
     Train_df.to_csv('res/{}_train_prob.csv'.format(model_name), index=False,
                                              header=None, sep=',', mode='w')
 
