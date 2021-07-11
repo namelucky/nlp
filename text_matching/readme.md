@@ -30,6 +30,58 @@
 
 每种匹配按文本长度又分为了长文本与长文本匹配，长文本短文本匹配，短文本短文本匹配。
 
+### EDA 数据初探
+
+1.长长匹配 B类 
+
+![image-20210519142915906](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519142915906.png)
+
+![image-20210519142936833](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519142936833.png)
+
+可见长长匹配的句子B长度基本分布在2000以内，正负例占比32714：12459
+
+2. 长长匹配A类
+
+   ![image-20210519143405330](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519143405330.png)
+
+![image-20210519143423367](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519143423367.png)
+
+正负例分布为23496：21693
+
+3. 短长匹配B类
+
+   ![image-20210519144745570](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519144745570.png)
+
+   ![image-20210519144212637](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519144212637.png)
+
+   正负例占比9706：35692
+
+   4. 短长匹配A类
+
+      ![image-20210519144630819](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519144630819.png)
+
+      ![image-20210519144640536](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519144640536.png)
+
+      正负例分布：19967：25428
+
+      5. 短短匹配 B类
+
+         ![image-20210519144928617](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519144928617.png)
+
+      ![image-20210519144941318](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519144941318.png)
+
+      正负例分布20230：5015
+
+      6. 短短匹配A类
+
+         ![image-20210519145105962](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519145105962.png)
+
+      ![image-20210519145132753](C:\Users\liwenlong\AppData\Roaming\Typora\typora-user-images\image-20210519145132753.png)
+
+      正负比 10364：14870
+
+      
+
 #### 思路
 
 - [x] 采用统一的一个模型来解决这六类问题，通过将类型变量输入网络，区分是哪种模式的匹配。
