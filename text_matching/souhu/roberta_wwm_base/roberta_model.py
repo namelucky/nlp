@@ -2,7 +2,7 @@
 '''
 @Created on 2021/4/8
 
-@Haihui Pan
+
 '''
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '2,1'
