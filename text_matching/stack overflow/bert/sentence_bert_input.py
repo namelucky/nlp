@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from transformers import *
+import pickle
 
 java_df = pd.read_csv("../divide/2018/mypair_{}_train.csv".format('java'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n")
 c_df = pd.read_csv("../divide/2018/mypair_{}_train.csv".format('c++'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n")
@@ -21,12 +22,12 @@ df_train.append(objc_df)
 df_train.append(python_df)
 df_train.append(ruby_df)
 
-java_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('java'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n")
-c_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('c++'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n")
-html_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('html'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n")
-objc_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('objective-c'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n")
-python_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('python'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n")
-ruby_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('ruby'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n")
+java_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('java'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n",header=0)
+c_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('c++'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n",header=0)
+html_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('html'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n",header=0)
+objc_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('objective-c'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n",header=0)
+python_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('python'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n",header=0)
+ruby_test_df = pd.read_csv("../divide/2018/mypair_{}_test.csv".format('ruby'), sep='\t', names=["id", "question1", "question2", "duplicated", "s1_title", "s2_title", "s1_body", "s2_body", "maintag"], encoding='utf-8-sig',lineterminator="\n",header=0)
 
 df_test=java_test_df.append(c_test_df)
 df_test.append(c_test_df)
@@ -35,6 +36,8 @@ df_test.append(objc_test_df)
 df_test.append(python_test_df)
 df_test.append(ruby_test_df)
 
+print(df_test.isnull().any())  # 检查是否有缺失值
+print(df_train.isnull().any())
 
 PATH = r'/home/znuser2/lwl/pretrained_model/en/bert_h5/'
 BERT_PATH = PATH
@@ -104,6 +107,17 @@ print(outputs.shape)
 
 test_inputs_q = compute_input_arrays(df_test, 's1_title', tokenizer, MAX_SEQUENCE_LENGTH)
 test_inputs_a = compute_input_arrays(df_test, 's2_title', tokenizer, MAX_SEQUENCE_LENGTH)
+test_outputs=compute_output_arrays(df_test, output_categories)
+
+def save(nfile, object):
+    with open(nfile, 'wb') as file:
+        pickle.dump(object, file)
+
+
+test_label=df_test['duplicated']
+save('./bert_input/test_label.pickle',test_label)
+
+
 
 np.save('./bert_input/inputs_q.npy', inputs_q)
 np.save('./bert_input/inputs_a.npy', inputs_a)
@@ -111,4 +125,5 @@ np.save('./bert_input/outputs.npy', outputs)
 
 np.save('./bert_input/test_inputs_q.npy', test_inputs_q)
 np.save('./bert_input/test_inputs_a.npy', test_inputs_a)
+np.save('./bert_input/test_outputs.npy', test_outputs)
 
